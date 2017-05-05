@@ -1,0 +1,38 @@
+﻿<Window x:Class="ExcelTool.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ExcelTool"
+        mc:Ignorable="d"
+        Title="ExcelTool" Height="584" Width="450" MinWidth="450" MinHeight="520">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <TreeView x:Name="treeView" Margin="10,35,134,128" Padding="-15,0,0,0" FontSize="13.333" Grid.ColumnSpan="2" SelectedItemChanged="treeView_SelectedItemChanged"/>
+        <RichTextBox x:Name="richTextBox" Margin="10,0,10,12" VerticalScrollBarVisibility="Auto" IsReadOnly="True" Grid.ColumnSpan="2" Height="111" VerticalAlignment="Bottom">
+            <FlowDocument LineHeight="1"/>
+        </RichTextBox>
+        <Button x:Name="settingBtn" HorizontalAlignment="Right" Margin="0,7,98,0" VerticalAlignment="Top" Width="27" Background="{x:Null}" BorderBrush="DarkSeaGreen" Click="settingBtn_Click" Grid.Column="1">
+            <Image Source="setting.png" Width="16" Height="16"/>
+        </Button>
+        <ComboBox x:Name="comboBox" HorizontalAlignment="Right" Margin="0,7,7,0" VerticalAlignment="Top" Width="82" Background="LightCyan" SelectedIndex="0" BorderBrush="DarkSeaGreen" Grid.Column="1" SelectionChanged="comboBox_SelectionChanged">
+            <ComboBoxItem Background="{x:Null}" Content="Client                 " Height="30" VerticalContentAlignment="Center"/>
+            <ComboBoxItem Background="{x:Null}" Content="Server                 " Height="30" VerticalContentAlignment="Center"/>
+        </ComboBox>
+        <TextBox x:Name="textBox" Height="23" Margin="10,7,134,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextChanged="textBox_TextChanged" Grid.ColumnSpan="2"/>
+        <Grid Height="65" Margin="0,46,7,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="119" Grid.Column="1">
+            <Rectangle Fill="Lavender" Margin="0,0,0,0" RadiusX="5" RadiusY="5" Stroke="Gainsboro" Height="65" VerticalAlignment="Top" HorizontalAlignment="Right" Width="119"/>
+            <Button x:Name="genCodeAll" Content="[Code] 生成所有" Background="{x:Null}" Click="genCodeAll_Click" Height="22" Width="101" Margin="9,8,9,35"/>
+            <Button x:Name="genCodeSel" Content="[Code] 生成单个" Background="{x:Null}" Click="genCodeSel_Click" Height="22" Width="101" Margin="9,35,9,8"/>
+        </Grid>
+        <Grid Height="65" Margin="0,126,7,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="119" Grid.Column="1">
+            <Rectangle Fill="LemonChiffon" Margin="0,0,0,0" RadiusX="5" RadiusY="5" Stroke="Gainsboro" Height="65" VerticalAlignment="Top" HorizontalAlignment="Right" Width="119"/>
+            <Button x:Name="genDataAll" Content="[Data] 生成所有" Background="{x:Null}" Click="genDataAll_Click" Height="22" Width="101" Margin="9,8,9,35"/>
+            <Button x:Name="genDataSel" Content="[Data] 生成单个" Background="{x:Null}" Click="genDataSel_Click" Height="22" Width="101" Margin="9,35,9,8"/>
+        </Grid>
+        <ProgressBar x:Name="progressBar" Grid.ColumnSpan="2" Height="10" Margin="0,0,0,0" VerticalAlignment="Bottom"/>
+    </Grid>
+</Window>

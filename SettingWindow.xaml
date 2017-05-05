@@ -1,0 +1,21 @@
+﻿<Window x:Class="ExcelTool.SettingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ExcelTool"
+        mc:Ignorable="d"
+        Title="设置" Height="110.278" Width="400" Closing="Window_Closing">
+    <Grid>
+        <Label Content="表格" HorizontalAlignment="Left" Margin="0,10,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="excelPathTextBox" Height="23" Margin="34,13,40,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextChanged="excelPathTextBox_TextChanged"/>
+        <Button x:Name="excelPathBtn" HorizontalAlignment="Right" Margin="0,13,6,0" VerticalAlignment="Top" Width="27" Background="{x:Null}" BorderBrush="DarkSeaGreen" Click="excelPathBtn_Click">
+            <Image Source="open.png" Width="16" Height="16"/>
+        </Button>
+        <Label Content="输出" HorizontalAlignment="Left" Margin="0,40,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="outputPathTextBox" Height="23" Margin="34,43,40,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextChanged="outputPathTextBox_TextChanged"/>
+        <Button x:Name="outputPathBtn" HorizontalAlignment="Right" Margin="0,43,6,0" VerticalAlignment="Top" Width="27" Background="{x:Null}" BorderBrush="DarkSeaGreen" Click="outputPathBtn_Click">
+            <Image Source="open.png" Width="16" Height="16"/>
+        </Button>
+    </Grid>
+</Window>
