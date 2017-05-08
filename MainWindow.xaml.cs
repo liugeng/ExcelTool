@@ -68,6 +68,8 @@ namespace ExcelTool
         int successCount = 0;
         int failedCount = 0;
         int totalSheetCount = 0;
+		int totalClientCount = 0;
+		int totalServerCount = 0;
 
 
         public MainWindow()
@@ -163,6 +165,25 @@ namespace ExcelTool
             return true;
         }
 
+		public void countSheet(ISheet sheet, ref int ccount, ref int scount)
+		{
+			IRow r4 = sheet.GetRow(3);
+			for (int i = 0; i < r4.LastCellNum; i++)
+			{
+				ICell c = r4.GetCell(i);
+				c.SetCellType(CellType.String);
+				if (c.StringCellValue.ToLower().Contains("c"))
+				{
+					ccount++;
+				}
+
+				if (c.StringCellValue.ToLower().Contains("s"))
+				{
+					scount++;
+				}
+			}
+		}
+
         public void showList(string filter = "")
         {
             treeView.Items.Clear();
@@ -176,65 +197,68 @@ namespace ExcelTool
 
             Dictionary<string, string> allSheetNames = new Dictionary<string, string>();
             DirectoryInfo dirInfo = new DirectoryInfo(excelPath);
-            foreach(FileInfo f in dirInfo.GetFiles())
-            {
-                {
-                    try
-                    {
-                        string filename = "[" + f.Name.Substring(0, f.Name.IndexOf(".")) + "]";
-                        IWorkbook workbook = loadWorkbook(excelPath, f.Name);
-                        if (workbook == null)
-                        {
-                            continue;
-                        }
 
-                        for (int i = 0; i < workbook.NumberOfSheets; i++)
-                        {
-                            string sheetName = workbook.GetSheetName(i);
-                            if (!allSheetNames.ContainsKey(sheetName))
-                            {
-                                allSheetNames[sheetName] = f.Name.Substring(0, f.Name.IndexOf("."));
-                            }
-                            else
-                            {
-                                string msg = "<" + allSheetNames[sheetName] + "> 和 <" + f.Name.Substring(0, f.Name.IndexOf(".")) + "> 都包含 " + sheetName;
-                                if (MessageBox.Show(msg, "Sheet名重复") == MessageBoxResult.OK)
-                                {
-                                    Close();
-                                }
-                                return;
-                            }
+			totalClientCount = 0;
+			totalServerCount = 0;
 
-                            if (checkSheetName(sheetName))
-                            {
-                                string header = filename + " " + workbook.GetSheetName(i);
-                                if (filter != "" && header.ToLower().IndexOf(filter.ToLower()) < 0)
-                                {
-                                    continue;
-                                }
-                                TreeViewItem sheet = new TreeViewItem()
-                                {
-                                    Header = header,
-                                    Tag = new SheetArg()
-                                    {
-                                        excelName = f.Name,
-                                        sheetName = sheetName
-                                    }
-                                };
+			foreach (FileInfo f in dirInfo.GetFiles())
+			{
+				try
+				{
+					string filename = "[" + f.Name.Substring(0, f.Name.IndexOf(".")) + "]";
+					IWorkbook workbook = loadWorkbook(excelPath, f.Name);
+					if (workbook == null)
+					{
+						continue;
+					}
 
-                                totalSheetCount++;
-                                treeView.Items.Add(sheet);
-                            }
-                        }
+					for (int i = 0; i < workbook.NumberOfSheets; i++)
+					{
+						string sheetName = workbook.GetSheetName(i);
+						if (!allSheetNames.ContainsKey(sheetName))
+						{
+							allSheetNames[sheetName] = f.Name.Substring(0, f.Name.IndexOf("."));
+						}
+						else
+						{
+							string msg = "<" + allSheetNames[sheetName] + "> 和 <" + f.Name.Substring(0, f.Name.IndexOf(".")) + "> 都包含 " + sheetName;
+							if (MessageBox.Show(msg, "Sheet名重复") == MessageBoxResult.OK)
+							{
+								Close();
+							}
+							return;
+						}
 
-                        workbook.Close();
-                    }
-                    catch (Exception e)
-                    {
-                        addLog(e.Message, errColor);
-                    }
-                }
-            }
+						if (checkSheetName(sheetName))
+						{
+							string header = filename + " " + workbook.GetSheetName(i);
+							if (filter != "" && header.ToLower().IndexOf(filter.ToLower()) < 0)
+							{
+								continue;
+							}
+							TreeViewItem sheet = new TreeViewItem()
+							{
+								Header = header,
+								Tag = new SheetArg()
+								{
+									excelName = f.Name,
+									sheetName = sheetName
+								}
+							};
+
+							totalSheetCount++;
+							countSheet(workbook.GetSheet(sheetName), ref totalClientCount, ref totalServerCount);
+							treeView.Items.Add(sheet);
+						}
+					}
+
+					workbook.Close();
+				}
+				catch (Exception e)
+				{
+					addLog(e.Message, errColor);
+				}
+			}
         }
 
 		private bool checkPath(string path, string errmsg)
@@ -365,11 +389,12 @@ namespace ExcelTool
 
             try
             {
+				bool ret = false;
                 if (genType == GenType.CODE)
                 {
                     if (codeType == CodeType.CLIENT)
                     {
-                        Generater.genClientCode(sheet);
+						ret = Generater.genClientCode(sheet);
                     }
                     else if (codeType == CodeType.SERVER)
                     {
@@ -381,7 +406,7 @@ namespace ExcelTool
                 {
                     if (codeType == CodeType.CLIENT)
                     {
-						Generater.genClientData(sheet);
+						ret = Generater.genClientData(sheet);
 					}
                     else if (codeType == CodeType.SERVER)
                     {
@@ -390,6 +415,10 @@ namespace ExcelTool
 					}
                 }
 
+				if (!ret)
+				{
+					return;
+				}
                 successCount++;
                 this.Dispatcher.BeginInvoke(new Action<string, Brush, int>(update), msg + "^-^", normalColor, successCount * 100 / totalSheetCount);
             }
@@ -419,6 +448,7 @@ namespace ExcelTool
             string excelPath = Properties.Settings.Default.excelPath;
             successCount = 0;
             failedCount = 0;
+			totalSheetCount = (codeType == CodeType.CLIENT ? totalClientCount : totalServerCount);
 
             try
             {

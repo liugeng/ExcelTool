@@ -23,60 +23,44 @@ namespace ExcelTool
     {
 		static int headerRowCount = 4;
 
-        public static void genClientCode(ISheet sheet)
+        public static bool genClientCode(ISheet sheet)
         {
-            IRow r1 = sheet.GetRow(0);  //备注
-            IRow r2 = sheet.GetRow(1);  //字段名
-            IRow r3 = sheet.GetRow(2);  //字段类型
-            IRow r4 = sheet.GetRow(3);  //前端后端
-
 			List<ColData> members = parseStruct(sheet, "C");
-			string saveName = "";
+			if (members.Count == 0)
+			{
+				return false;
+			}
+
             string memStr = "";
             string constructStr = "";
 			string readMemStr = "";
 
-			//todo: 使用members生成memStr和constructStr
 			foreach(ColData d in members)
 			{
-				readMemStr += readMemberStr("\t\t", "conf." + d.vname, d.vtype, d.isCommaArr || d.isCombineArr);
+				bool isArr = d.isCommaArr || d.isCombineArr;
+				string vtypeStr = (isArr ? d.vtype + "[]" : d.vtype);
+				memStr += "\t" + typeStr(vtypeStr) + " " + d.vname + ";\n";
+				readMemStr += readMemberStr("\t\t", "conf." + d.vname, d.vtype, isArr);
+
+				if (!isArr)
+				{
+					if (d.column == 0 && d.vtype == "int")
+					{
+						constructStr += (constructStr == "" ? ":" : ",");
+						constructStr += d.vname + "(-1)\n";
+					}
+					else
+					{
+						constructStr += (constructStr == "" ? ":" : ",");
+						constructStr += d.vname + "(" + defaultValue(d.vtype) + ")\n";
+					}
+				}
 			}
 
-
-            for (int i = r2.FirstCellNum; i < r2.LastCellNum; i++)
-            {
-				if (!r4.GetCell(i).StringCellValue.Contains("C"))
-				{
-					continue;
-				}
-                string name = r2.GetCell(i).StringCellValue;
-                string vtype = r3.GetCell(i).StringCellValue;
-                if (name.Contains("[")) //组合数组
-                {
-                    if (saveName == name)
-                    {
-                        continue;
-                    }
-                    memStr += "\t" + typeStr(vtype + "[]") + " " + name.Substring(0, name.IndexOf("[")) + ";\n";
-					//constructStr += (constructStr == "" ? ":" : ",");
-					//constructStr += name.Substring(0, name.IndexOf("[")) + "(" + defaultValue(vtype + "[]") + ")\n";
-				}
-				else
-                {
-                    memStr += "\t" + typeStr(vtype) + " " + name + ";\n";
-					if (i == r2.FirstCellNum && vtype == "int")
-					{
-						constructStr += (constructStr == "" ? ":" : ",");
-						constructStr += name + "(-1)\n";
-					}
-					else if (!vtype.Contains("["))
-					{
-						constructStr += (constructStr == "" ? ":" : ",");
-						constructStr += name + "(" + defaultValue(vtype) + ")\n";
-					}
-                }
-                saveName = name;
-            }
+			IRow r1 = sheet.GetRow(0);  //备注
+            IRow r2 = sheet.GetRow(1);  //字段名
+            IRow r3 = sheet.GetRow(2);  //字段类型
+            IRow r4 = sheet.GetRow(3);  //前端后端
 
 
             string ccodePath = Properties.Settings.Default.ccodePath;
@@ -93,16 +77,16 @@ namespace ExcelTool
                 + "\n"
                 + "class {1}Table {{\n"
                 + "public:\n"
-                + "	static const {1}Config& get(s32 key);\n"
+                + "	static const {1}Config& get({3} key);\n"
                 + "	static void load();\n"
                 + "	static void clear();\n"
 				+ "	static int size;\n"
 				+ "private:\n"
-                + "	static HashMap<s32, {1}Config> datas;\n"
+                + "	static HashMap<{3}, {1}Config> datas;\n"
                 + "	static {1}Config defaultConfig;\n"
                 + "}};\n"
                 + "\n"
-                + "#endif /*__{0}CONFIG_H__*/", sheet.SheetName.ToUpper(), sheet.SheetName, memStr));
+                + "#endif /*__{0}CONFIG_H__*/", sheet.SheetName.ToUpper(), sheet.SheetName, memStr, typeStr(members[0].vtype)));
             f.Close();
 
 
@@ -114,15 +98,15 @@ namespace ExcelTool
 				+ "{1}"
 				+ "{{}}\n"
 				+ "\n"
-				+ "HashMap<s32, {0}Config> {0}Table::datas;\n"
+				+ "HashMap<{4}, {0}Config> {0}Table::datas;\n"
 				+ "{0}Config {0}Table::defaultConfig;\n"
 				+ "int {0}Table::size = 0;\n"
 				+ "\n"
-				+ "const {0}Config& {0}Table::get(s32 key) {{\n"
+				+ "const {0}Config& {0}Table::get({4} key) {{\n"
 				+ "	if (size == 0) {{\n"
 				+ "		load();\n"
 				+ "	}}\n"
-				+ "	HashMap<s32, {0}Config>::iterator it = datas.find(key);\n"
+				+ "	HashMap<{4}, {0}Config>::iterator it = datas.find(key);\n"
 				+ "	if (it != datas.end()) {{\n"
 				+ "		return it->second;\n"
 				+ "	}}\n"
@@ -137,25 +121,33 @@ namespace ExcelTool
 				+ "	for (int i = 0; i < size; i++) {{\n"
 				+ "		{0}Config conf;\n"
 				+ "{2}"
+				+ "		datas[conf.{3}] = conf;\n"
 				+ "	}}\n"
 				+ "}}\n"
 				+ "\n"
 				+ "void {0}Table::clear() {{\n"
 				+ "	datas.clear();\n"
 				+ "}}\n"
-				+ "", sheet.SheetName, constructStr, readMemStr));
+				+ "", sheet.SheetName, constructStr, readMemStr, members[0].vname, typeStr(members[0].vtype)));
 			f.Close();
+
+			return true;
 		}
 
-        public static void genClientData(ISheet sheet)
+        public static bool genClientData(ISheet sheet)
         {
+			List<ColData> members = parseStruct(sheet, "C");
+			if (members.Count == 0)
+			{
+				return false;
+			}
+
 			int rowCount = convertCellType(sheet);
 
 			IRow r2 = sheet.GetRow(1);  //字段名
 			IRow r3 = sheet.GetRow(2);  //字段类型
 			IRow r4 = sheet.GetRow(3);  //前端后端
-
-			List<ColData> members = parseStruct(sheet, "C");
+			
 
 			string filename = Path.Combine(Properties.Settings.Default.cdataPath, sheet.SheetName + "Config.bin");
 			BinaryWriter bw = new BinaryWriter(new FileStream(filename, FileMode.Create));
@@ -226,6 +218,8 @@ namespace ExcelTool
 			//	Console.Write("\n");
 			//}
 			//br.Close();
+
+			return true;
 		}
 
 		//debug read bin
@@ -287,16 +281,16 @@ namespace ExcelTool
 			return ret;
 		}
 
-		public static void genServerCode(ISheet sheet)
+		public static bool genServerCode(ISheet sheet)
         {
-
+			return true;
         }
 
 
-        public static void genServerData(ISheet sheet)
+        public static bool genServerData(ISheet sheet)
         {
-
-        }
+			return true;
+		}
 
 
 
@@ -346,7 +340,7 @@ namespace ExcelTool
 			ColData cd = null;
 			string savedName = "";
 
-			for (int i = r2.FirstCellNum; i < r2.LastCellNum; i++)
+			for (int i = 0; i < r2.LastCellNum; i++)
 			{
 				if (!r4.GetCell(i).StringCellValue.Contains(cs))
 				{
