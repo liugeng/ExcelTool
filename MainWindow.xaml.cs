@@ -20,20 +20,20 @@ using System.Windows.Shapes;
 
 namespace ExcelTool
 {
-    enum TarType
+	public enum SelType
     {
         ALL,
         SEL
     }
 
-    enum GenType
+	public enum GenType
     {
         NONE,
         CODE,
         DATA
     }
 
-    enum CodeType
+	public enum CodeType
     {
         CLIENT,
         SERVER
@@ -59,15 +59,16 @@ namespace ExcelTool
         static Brush lightColor = new SolidColorBrush(Colors.Green);
         static Brush errColor = new SolidColorBrush(Colors.Red);
 
-        TarType tarType = TarType.ALL;
-        GenType genType = GenType.NONE;
-        CodeType codeType = CodeType.CLIENT;
+        public SelType selType = SelType.ALL;
+		public GenType genType = GenType.NONE;
+		public CodeType codeType = CodeType.CLIENT;
         SheetArg selectedArg = null;
 
         bool initialized = false;
         int successCount = 0;
         int failedCount = 0;
         int totalSheetCount = 0;
+
 
         public MainWindow()
         {
@@ -82,12 +83,22 @@ namespace ExcelTool
 
             progressBar.Visibility = Visibility.Hidden;
 
-            if (SettingWindow.checkValid())
-            {
-                addLog("表格:" + Properties.Settings.Default.excelPath, lightColor);
-                addLog("输出:" + Properties.Settings.Default.outputPath, lightColor);
+			//if (SettingWindow.checkValid())
+			if (Properties.Settings.Default.firstRun)
+			{
+				Properties.Settings.Default.firstRun = false;
+				Properties.Settings.Default.Save();
+				SettingWindow.open();
+			}
+			else if (Properties.Settings.Default.excelPath != "")
+			{
+                addLog("表格目录:" + Properties.Settings.Default.excelPath, lightColor);
                 showList();
             }
+			else
+			{
+				addLog("表格目录没有指定", errColor);
+			}
 
             bool defaultClient = Properties.Settings.Default.defaultClient;
             if (!defaultClient)
@@ -101,7 +112,7 @@ namespace ExcelTool
             SettingWindow.open();
         }
 
-        void addLog(string log, Brush c)
+        public void addLog(string log, Brush c)
         {
             if (consoleLines.Inlines.Count > 0)
             {
@@ -152,7 +163,7 @@ namespace ExcelTool
             return true;
         }
 
-        void showList(string filter = "")
+        public void showList(string filter = "")
         {
             treeView.Items.Clear();
 
@@ -226,30 +237,77 @@ namespace ExcelTool
             }
         }
 
+		private bool checkPath(string path, string errmsg)
+		{
+			bool ret = true;
+			string caption = "";
+
+			if (path == "")
+			{
+				caption = errmsg + "没有设置";
+				ret = false;
+			}
+			else if (!Directory.Exists(path))
+			{
+				caption = errmsg + "不存在";
+				ret = false;
+			}
+
+			if (!ret && MessageBox.Show("是否现在设置?", caption, MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+			{
+				SettingWindow.open();
+			}
+			return ret;
+		}
+
         private void genCodeAll_Click(object sender, RoutedEventArgs e)
         {
-            tarType = TarType.ALL;
+			if ((codeType == CodeType.CLIENT && !checkPath(Properties.Settings.Default.ccodePath, "客户端代码目录")) ||
+				(codeType == CodeType.SERVER && !checkPath(Properties.Settings.Default.scodePath, "服务器代码目录")))
+			{
+				return;
+			}
+
+			selType = SelType.ALL;
             genType = GenType.CODE;
             start();
         }
 
         private void genCodeSel_Click(object sender, RoutedEventArgs e)
         {
-            tarType = TarType.SEL;
+			if ((codeType == CodeType.CLIENT && !checkPath(Properties.Settings.Default.ccodePath, "客户端代码目录")) ||
+				(codeType == CodeType.SERVER && !checkPath(Properties.Settings.Default.scodePath, "服务器代码目录")))
+			{
+				return;
+			}
+
+			selType = SelType.SEL;
             genType = GenType.CODE;
             start();
         }
 
         private void genDataAll_Click(object sender, RoutedEventArgs e)
         {
-            tarType = TarType.ALL;
+			if ((codeType == CodeType.CLIENT && !checkPath(Properties.Settings.Default.cdataPath, "客户端数据目录")) ||
+				(codeType == CodeType.SERVER && !checkPath(Properties.Settings.Default.sdataPath, "服务器数据目录")))
+			{
+				return;
+			}
+
+			selType = SelType.ALL;
             genType = GenType.DATA;
             start();
         }
 
         private void genDataSel_Click(object sender, RoutedEventArgs e)
         {
-            tarType = TarType.SEL;
+			if ((codeType == CodeType.CLIENT && !checkPath(Properties.Settings.Default.cdataPath, "客户端数据目录")) ||
+				(codeType == CodeType.SERVER && !checkPath(Properties.Settings.Default.sdataPath, "服务器数据目录")))
+			{
+				return;
+			}
+
+			selType = SelType.SEL;
             genType = GenType.DATA;
             start();
         }
@@ -259,23 +317,24 @@ namespace ExcelTool
             showList(textBox.Text);
         }
 
-        private void start()
+        public void start(bool async = true)
         {
-            if (tarType == TarType.SEL && selectedArg == null)
+            if (selType == SelType.SEL && selectedArg == null)
             {
-                MessageBox.Show("先选择一个吧", "没有选择的对象");
-                return;
-            }
-
-            string outputPath = Properties.Settings.Default.outputPath;
-            if (!Directory.Exists(outputPath))
-            {
-                MessageBox.Show("输出路径不存在");
+                MessageBox.Show("先选择一个表格吧", "没有选择的对象");
                 return;
             }
 
             progressBar.Visibility = Visibility.Visible;
-            Task.Factory.StartNew(gen);
+
+			if (async)
+			{
+				Task.Factory.StartNew(gen);
+			}
+			else
+			{
+				gen();
+			}
         }
 
         private void update(string msg, Brush b, int value)
@@ -287,20 +346,21 @@ namespace ExcelTool
         private void finished()
         {
             progressBar.Visibility = Visibility.Hidden;
-            string msg = string.Format("生成{0}完毕，失败{1}个，成功{2}个",
+            string msg = string.Format("---------- 生成{0}完毕，失败{1}个，成功{2}个 ----------",
                                         genType == GenType.CODE ? "代码" : "数据",
                                         failedCount,
                                         successCount);
             addLog(msg, failedCount == 0 ? lightColor : errColor);
-        }
+		}
 
+		//in thread
         void handleSheet(ISheet sheet, string excelName)
         {
             string msg = "[" + excelName.Substring(0, excelName.IndexOf(".")) + "] " + sheet.SheetName + " : ";
 
             if (sheet.LastRowNum < 4)
             {
-                throw new System.Exception(msg + "内容格式不符合规范");
+                throw new System.Exception(msg + "内容格式不符合规范：行1<备注> 行2<字段名> 行3<字段类型> 行4<CS>");
             }
 
             try
@@ -313,36 +373,35 @@ namespace ExcelTool
                     }
                     else if (codeType == CodeType.SERVER)
                     {
-                        addLog("TODO", normalColor);
-                        //Generater.genServerCode(sheet);
-                    }
+						throw new Exception("TODO");
+						//Generater.genServerCode(sheet);
+					}
                 }
                 else if (genType == GenType.DATA)
                 {
                     if (codeType == CodeType.CLIENT)
                     {
-                        addLog("TODO", normalColor);
-                        //Generater.genClientData(sheet);
-                    }
+						Generater.genClientData(sheet);
+					}
                     else if (codeType == CodeType.SERVER)
                     {
-                        addLog("TODO", normalColor);
-                        //Generater.genServerData(sheet);
-                    }
+						throw new Exception("TODO");
+						//Generater.genServerData(sheet);
+					}
                 }
 
                 successCount++;
                 this.Dispatcher.BeginInvoke(new Action<string, Brush, int>(update), msg + "^-^", normalColor, successCount * 100 / totalSheetCount);
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                msg = "[ERROR] " + sheet.SheetName + ":  ";
-                this.Dispatcher.BeginInvoke(new Action<string, Brush>(addLog), msg, errColor);
+                this.Dispatcher.BeginInvoke(new Action<string, Brush>(addLog), msg + "Error", errColor);
                 throw;
             }
         }
 
-        void handleWorkbook(IWorkbook workbook, string excelName)
+		//in thread
+		void handleWorkbook(IWorkbook workbook, string excelName)
         {
             for (int i = 0; i < workbook.NumberOfSheets; i++)
             {
@@ -354,7 +413,8 @@ namespace ExcelTool
             }
         }
 
-        private void gen()
+		//in thread
+		private void gen()
         {
             string excelPath = Properties.Settings.Default.excelPath;
             successCount = 0;
@@ -362,7 +422,7 @@ namespace ExcelTool
 
             try
             {
-                if (tarType == TarType.ALL)
+                if (selType == SelType.ALL)
                 {
                     DirectoryInfo dirInfo = new DirectoryInfo(excelPath);
 
@@ -382,7 +442,7 @@ namespace ExcelTool
 
                     }
                 }
-                else if (tarType == TarType.SEL)
+                else if (selType == SelType.SEL)
                 {
                     IWorkbook workbook = loadWorkbook(excelPath, selectedArg.excelName);
                     if (workbook == null)

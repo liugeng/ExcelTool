@@ -20,6 +20,9 @@ namespace ExcelTool
     /// </summary>
     public partial class SettingWindow : Window
     {
+		Brush norColor = new SolidColorBrush(Colors.Black);
+		Brush errColor = new SolidColorBrush(Colors.Red);
+
         public SettingWindow()
         {
             InitializeComponent();
@@ -28,62 +31,86 @@ namespace ExcelTool
             this.Top = MainWindow.instance.Top + MainWindow.instance.Height * 0.3 - Height * 0.5;
 
             excelPathTextBox.Text = Properties.Settings.Default.excelPath;
-            outputPathTextBox.Text = Properties.Settings.Default.outputPath;
+            ccodePathTextBox.Text = Properties.Settings.Default.ccodePath;
+			cdataPathTextBox.Text = Properties.Settings.Default.cdataPath;
+			scodePathTextBox.Text = Properties.Settings.Default.scodePath;
+			sdataPathTextBox.Text = Properties.Settings.Default.sdataPath;
 
-            
-        }
+			checkPath(excelPathLabel, Properties.Settings.Default.excelPath);
+			checkPath(ccodePathLabel, Properties.Settings.Default.ccodePath);
+			checkPath(cdataPathLabel, Properties.Settings.Default.cdataPath);
+			checkPath(scodePathLabel, Properties.Settings.Default.scodePath);
+			checkPath(sdataPathLabel, Properties.Settings.Default.sdataPath);
+		}
+
+		void checkPath(Label lab, string path)
+		{
+			if (path == "" || !Directory.Exists(path))
+			{
+				lab.Foreground = errColor;
+			}
+			else
+			{
+				lab.Foreground = norColor;
+			}
+		}
 
         public static void open()
         {
             (new SettingWindow()).ShowDialog();
         }
 
-        public static bool checkValid()
-        {
-            string excelPath = Properties.Settings.Default.excelPath;
-            if (excelPath != "" && !Directory.Exists(excelPath))
-            {
-                excelPath = "";
-                Properties.Settings.Default.excelPath = "";
-            }
+        //public static bool checkValid()
+        //{
+        //    string excelPath = Properties.Settings.Default.excelPath;
+        //    if (excelPath != "" && !Directory.Exists(excelPath))
+        //    {
+        //        excelPath = "";
+        //        Properties.Settings.Default.excelPath = "";
+        //    }
 
-            string outputPath = Properties.Settings.Default.outputPath;
-            if (outputPath != "" && !Directory.Exists(outputPath))
-            {
-                outputPath = "";
-                Properties.Settings.Default.outputPath = "";
-            }
+        //    string ccodePath = Properties.Settings.Default.ccodePath;
+        //    if (ccodePath != "" && !Directory.Exists(ccodePath))
+        //    {
+        //        ccodePath = "";
+        //        Properties.Settings.Default.ccodePath = "";
+        //    }
 
-            if (excelPath == "" || outputPath == "")
-            {
-                Properties.Settings.Default.Save();
-                open();
-                return false;
-            }
-            return true;
-        }
-
-        private void excelPathTextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-
-        }
-
-        private void outputPathTextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-
-        }
+        //    if (excelPath == "" || ccodePath == "")
+        //    {
+        //        Properties.Settings.Default.Save();
+        //        open();
+        //        return false;
+        //    }
+        //    return true;
+        //}
 
         private void excelPathBtn_Click(object sender, RoutedEventArgs e)
         {
             excelPathTextBox.Text = openSettingDialog(Properties.Settings.Default.excelPath, "选择表格目录");
         }
 
-        private void outputPathBtn_Click(object sender, RoutedEventArgs e)
+        private void ccodePathBtn_Click(object sender, RoutedEventArgs e)
         {
-            outputPathTextBox.Text = openSettingDialog(Properties.Settings.Default.outputPath, "选择输出目录");
+            ccodePathTextBox.Text = openSettingDialog(Properties.Settings.Default.ccodePath, "选择客户端代码输出目录");
         }
 
-        private string openSettingDialog(String selectedPath, string des)
+		private void cdataPathBtn_Click(object sender, RoutedEventArgs e)
+		{
+			cdataPathTextBox.Text = openSettingDialog(Properties.Settings.Default.ccodePath, "选择客户端数据输出目录");
+		}
+
+		private void scodePathBtn_Click(object sender, RoutedEventArgs e)
+		{
+			scodePathTextBox.Text = openSettingDialog(Properties.Settings.Default.ccodePath, "选择服务器代码输出目录");
+		}
+
+		private void sdataPathBtn_Click(object sender, RoutedEventArgs e)
+		{
+			sdataPathTextBox.Text = openSettingDialog(Properties.Settings.Default.ccodePath, "选择服务器数据输出目录");
+		}
+
+		private string openSettingDialog(String selectedPath, string des)
         {
             if (selectedPath == "")
             {
@@ -106,37 +133,70 @@ namespace ExcelTool
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            string excelPath = Properties.Settings.Default.excelPath;
-            string outputPath = Properties.Settings.Default.outputPath;
-            if (!Directory.Exists(excelPathTextBox.Text))
-            {
-                if (MessageBox.Show("表格路径不存在，是否重新设置？", "路径不正确") == MessageBoxResult.Yes)
-                {
-                    e.Cancel = true;
-                }
-                else
-                {
-                    Application.Current.Shutdown(0);
-                }
-                return;
-            }
+            //if (!Directory.Exists(excelPathTextBox.Text))
+            //{
+            //    if (MessageBox.Show("表格路径不存在，是否重新设置？", "路径不正确") == MessageBoxResult.Yes)
+            //    {
+            //        e.Cancel = true;
+            //    }
+            //    else
+            //    {
+            //        Application.Current.Shutdown(0);
+            //    }
+            //    return;
+            //}
 
-            if (!Directory.Exists(outputPathTextBox.Text))
-            {
-                if (MessageBox.Show("输出路径不存在，是否重新设置？", "路径不正确", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
-                {
-                    e.Cancel = true;
-                }
-                else
-                {
-                    Application.Current.Shutdown(0);
-                }
-                return;
-            }
+            //if (!Directory.Exists(ccodePathTextBox.Text))
+            //{
+            //    if (MessageBox.Show("输出路径不存在，是否重新设置？", "路径不正确", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            //    {
+            //        e.Cancel = true;
+            //    }
+            //    else
+            //    {
+            //        Application.Current.Shutdown(0);
+            //    }
+            //    return;
+            //}
 
             Properties.Settings.Default.excelPath = excelPathTextBox.Text;
-            Properties.Settings.Default.outputPath = outputPathTextBox.Text;
-            Properties.Settings.Default.Save();
+            Properties.Settings.Default.ccodePath = ccodePathTextBox.Text;
+			Properties.Settings.Default.cdataPath = cdataPathTextBox.Text;
+			Properties.Settings.Default.scodePath = scodePathTextBox.Text;
+			Properties.Settings.Default.sdataPath = sdataPathTextBox.Text;
+			Properties.Settings.Default.Save();
         }
-    }
+
+		private void excelPathTextBox_TextChanged(object sender, TextChangedEventArgs e)
+		{
+			string path = excelPathTextBox.Text;
+			checkPath(excelPathLabel, path);
+			if (path != "" && Directory.Exists(path) && path != Properties.Settings.Default.excelPath)
+			{
+				Properties.Settings.Default.excelPath = path;
+				Properties.Settings.Default.Save();
+				MainWindow.instance.showList();
+			}
+		}
+
+		private void ccodePathTextBox_TextChanged(object sender, TextChangedEventArgs e)
+		{
+			checkPath(ccodePathLabel, ccodePathTextBox.Text);
+		}
+
+		private void cdataPathTextBox_TextChanged(object sender, TextChangedEventArgs e)
+		{
+			checkPath(cdataPathLabel, cdataPathTextBox.Text);
+		}
+
+		private void scodePathTextBox_TextChanged(object sender, TextChangedEventArgs e)
+		{
+			checkPath(scodePathLabel, scodePathTextBox.Text);
+		}
+
+		private void sdataPathTextBox_TextChanged(object sender, TextChangedEventArgs e)
+		{
+			checkPath(sdataPathLabel, sdataPathTextBox.Text);
+		}
+	}
 }

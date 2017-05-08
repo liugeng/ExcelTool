@@ -5,16 +5,31 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ExcelTool"
         mc:Ignorable="d"
-        Title="设置" Height="110.278" Width="400" Closing="Window_Closing">
+        Title="设置" Height="245" Width="563" Closing="Window_Closing" ResizeMode="NoResize">
     <Grid>
-        <Label Content="表格" HorizontalAlignment="Left" Margin="0,10,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="excelPathTextBox" Height="23" Margin="34,13,40,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextChanged="excelPathTextBox_TextChanged"/>
+        <Label x:Name="excelPathLabel" Content="表格目录" HorizontalAlignment="Left" Margin="0,10,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="excelPathTextBox" Height="23" Margin="80,13,40,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextChanged="excelPathTextBox_TextChanged"/>
         <Button x:Name="excelPathBtn" HorizontalAlignment="Right" Margin="0,13,6,0" VerticalAlignment="Top" Width="27" Background="{x:Null}" BorderBrush="DarkSeaGreen" Click="excelPathBtn_Click">
             <Image Source="open.png" Width="16" Height="16"/>
         </Button>
-        <Label Content="输出" HorizontalAlignment="Left" Margin="0,40,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="outputPathTextBox" Height="23" Margin="34,43,40,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextChanged="outputPathTextBox_TextChanged"/>
-        <Button x:Name="outputPathBtn" HorizontalAlignment="Right" Margin="0,43,6,0" VerticalAlignment="Top" Width="27" Background="{x:Null}" BorderBrush="DarkSeaGreen" Click="outputPathBtn_Click">
+        <Label x:Name="ccodePathLabel" Content="客户端代码" HorizontalAlignment="Left" Margin="0,56,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="ccodePathTextBox" Height="23" Margin="80,59,40,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextChanged="ccodePathTextBox_TextChanged"/>
+        <Button x:Name="ccodePathBtn" HorizontalAlignment="Right" Margin="0,59,6,0" VerticalAlignment="Top" Width="27" Background="{x:Null}" BorderBrush="DarkSeaGreen" Click="ccodePathBtn_Click">
+            <Image Source="open.png" Width="16" Height="16"/>
+        </Button>
+        <Label x:Name="cdataPathLabel" Content="客户端数据" HorizontalAlignment="Left" Margin="0,86,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="cdataPathTextBox" Height="23" Margin="80,89,40,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextChanged="cdataPathTextBox_TextChanged"/>
+        <Button x:Name="cdataPathBtn" HorizontalAlignment="Right" Margin="0,89,6,0" VerticalAlignment="Top" Width="27" Background="{x:Null}" BorderBrush="DarkSeaGreen" Click="cdataPathBtn_Click">
+            <Image Source="open.png" Width="16" Height="16"/>
+        </Button>
+        <Label x:Name="scodePathLabel" Content="服务器代码" HorizontalAlignment="Left" Margin="0,133,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="scodePathTextBox" Height="23" Margin="80,136,40,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextChanged="scodePathTextBox_TextChanged"/>
+        <Button x:Name="scodePathBtn" HorizontalAlignment="Right" Margin="0,136,6,0" VerticalAlignment="Top" Width="27" Background="{x:Null}" BorderBrush="DarkSeaGreen" Click="scodePathBtn_Click">
+            <Image Source="open.png" Width="16" Height="16"/>
+        </Button>
+        <Label x:Name="sdataPathLabel" Content="服务器数据" HorizontalAlignment="Left" Margin="0,163,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="sdataPathTextBox" Height="23" Margin="80,166,40,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextChanged="sdataPathTextBox_TextChanged"/>
+        <Button x:Name="sdataPathBtn" HorizontalAlignment="Right" Margin="0,166,6,0" VerticalAlignment="Top" Width="27" Background="{x:Null}" BorderBrush="DarkSeaGreen" Click="sdataPathBtn_Click">
             <Image Source="open.png" Width="16" Height="16"/>
         </Button>
     </Grid>

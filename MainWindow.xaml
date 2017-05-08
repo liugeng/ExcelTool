@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ExcelTool"
         mc:Ignorable="d"
-        Title="ExcelTool" Height="584" Width="450" MinWidth="450" MinHeight="520">
+        Title="ExcelTool" Height="584" Width="450" MinWidth="450" MinHeight="520" Icon="icon.ico">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
