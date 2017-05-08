@@ -165,21 +165,22 @@ namespace ExcelTool
             return true;
         }
 
-		public void countSheet(ISheet sheet, ref int ccount, ref int scount)
+		public void countSheet(ISheet sheet, ref bool forClient, ref bool forServer)
 		{
 			IRow r4 = sheet.GetRow(3);
+
 			for (int i = 0; i < r4.LastCellNum; i++)
 			{
 				ICell c = r4.GetCell(i);
 				c.SetCellType(CellType.String);
 				if (c.StringCellValue.ToLower().Contains("c"))
 				{
-					ccount++;
+					forClient = true;
 				}
 
 				if (c.StringCellValue.ToLower().Contains("s"))
 				{
-					scount++;
+					forServer = true;
 				}
 			}
 		}
@@ -215,22 +216,43 @@ namespace ExcelTool
 					for (int i = 0; i < workbook.NumberOfSheets; i++)
 					{
 						string sheetName = workbook.GetSheetName(i);
-						if (!allSheetNames.ContainsKey(sheetName))
-						{
-							allSheetNames[sheetName] = f.Name.Substring(0, f.Name.IndexOf("."));
-						}
-						else
-						{
-							string msg = "<" + allSheetNames[sheetName] + "> 和 <" + f.Name.Substring(0, f.Name.IndexOf(".")) + "> 都包含 " + sheetName;
-							if (MessageBox.Show(msg, "Sheet名重复") == MessageBoxResult.OK)
-							{
-								Close();
-							}
-							return;
-						}
-
 						if (checkSheetName(sheetName))
 						{
+							bool forClient = false;
+							bool forServer = false;
+							countSheet(workbook.GetSheet(sheetName), ref forClient, ref forServer);
+
+							if (forClient)
+							{
+								totalClientCount++;
+							}
+
+							if (forServer)
+							{
+								totalServerCount++;
+							}
+
+							if ((codeType == CodeType.CLIENT && !forClient) || (codeType == CodeType.SERVER && !forServer))
+							{
+								continue;
+							}
+
+
+							if (!allSheetNames.ContainsKey(sheetName))
+							{
+								allSheetNames[sheetName] = f.Name.Substring(0, f.Name.IndexOf("."));
+							}
+							else
+							{
+								string msg = "<" + allSheetNames[sheetName] + "> 和 <" + f.Name.Substring(0, f.Name.IndexOf(".")) + "> 都包含 " + sheetName;
+								if (MessageBox.Show(msg, "Sheet名重复") == MessageBoxResult.OK)
+								{
+									Close();
+								}
+								return;
+							}
+
+
 							string header = filename + " " + workbook.GetSheetName(i);
 							if (filter != "" && header.ToLower().IndexOf(filter.ToLower()) < 0)
 							{
@@ -246,8 +268,6 @@ namespace ExcelTool
 								}
 							};
 
-							totalSheetCount++;
-							countSheet(workbook.GetSheet(sheetName), ref totalClientCount, ref totalServerCount);
 							treeView.Items.Add(sheet);
 						}
 					}
@@ -496,11 +516,17 @@ namespace ExcelTool
 
         private void comboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            codeType = (comboBox.SelectedIndex == 0 ? CodeType.CLIENT : CodeType.SERVER);
+            CodeType newType = (comboBox.SelectedIndex == 0 ? CodeType.CLIENT : CodeType.SERVER);
             if (initialized)
             {
-                Properties.Settings.Default.defaultClient = (codeType == CodeType.CLIENT);
+                Properties.Settings.Default.defaultClient = (newType == CodeType.CLIENT);
                 Properties.Settings.Default.Save();
+
+				if (codeType != newType)
+				{
+					codeType = newType;
+					showList();
+				}
             }
         }
 
