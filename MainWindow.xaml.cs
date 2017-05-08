@@ -370,6 +370,7 @@ namespace ExcelTool
             }
 
             progressBar.Visibility = Visibility.Visible;
+			progressBar.Value = 0;
 
 			if (async)
 			{
