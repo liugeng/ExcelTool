@@ -14,7 +14,7 @@
         </Grid.RowDefinitions>
         <TreeView x:Name="treeView" Margin="10,35,134,0" Padding="-15,0,0,0" FontSize="13.333" Grid.ColumnSpan="1" SelectedItemChanged="treeView_SelectedItemChanged"/>
         <GridSplitter x:Name="gridSplitter" HorizontalAlignment="Stretch" Height="5" Grid.Row="1" VerticalAlignment="Top" Grid.ColumnSpan="1" Margin="10,0,134,0" Opacity="0"/>
-        <RichTextBox x:Name="richTextBox" Margin="10,5,10,2" VerticalScrollBarVisibility="Auto" IsReadOnly="True" Grid.Row="1" Grid.ColumnSpan="1">
+        <RichTextBox x:Name="logRichTextBox" Margin="10,5,10,2" VerticalScrollBarVisibility="Auto" IsReadOnly="True" Grid.Row="1" Grid.ColumnSpan="1">
             <FlowDocument LineHeight="1"/>
         </RichTextBox>
         <Button x:Name="settingBtn" HorizontalAlignment="Right" Margin="0,7,98,0" VerticalAlignment="Top" Width="27" Background="{x:Null}" BorderBrush="DarkSeaGreen" Click="settingBtn_Click" Grid.Column="1" Height="22">
@@ -24,7 +24,7 @@
             <ComboBoxItem Background="{x:Null}" Content="Client                 " Height="30" VerticalContentAlignment="Center"/>
             <ComboBoxItem Background="{x:Null}" Content="Server                 " Height="30" VerticalContentAlignment="Center"/>
         </ComboBox>
-        <TextBox x:Name="textBox" Height="23" Margin="10,7,134,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextChanged="textBox_TextChanged" Grid.ColumnSpan="1"/>
+        <TextBox x:Name="searchTextBox" Height="23" Margin="10,7,134,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextChanged="textBox_TextChanged" Grid.ColumnSpan="1"/>
         <Grid Height="65" Margin="0,46,7,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="119" Grid.Column="1">
             <Rectangle Fill="Lavender" Margin="0,0,0,0" RadiusX="5" RadiusY="5" Stroke="Gainsboro" Height="65" VerticalAlignment="Top" HorizontalAlignment="Right" Width="119"/>
             <Button x:Name="genCodeAll" Content="[Code] 生成所有" Background="{x:Null}" Click="genCodeAll_Click" Height="22" Width="101" Margin="9,8,9,35"/>

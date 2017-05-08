@@ -71,8 +71,10 @@ namespace ExcelTool
 		int totalClientCount = 0;
 		int totalServerCount = 0;
 
+		Dictionary<string, string> allSheetNames = new Dictionary<string, string>();
 
-        public MainWindow()
+
+		public MainWindow()
         {
             instance = this;
             InitializeComponent();
@@ -81,7 +83,7 @@ namespace ExcelTool
             this.Left = (SystemParameters.PrimaryScreenWidth - this.Width) * 0.5;
             this.Top = (SystemParameters.PrimaryScreenHeight - this.Height) * 0.5;
 
-            richTextBox.Document.Blocks.Add(consoleLines);
+            logRichTextBox.Document.Blocks.Add(consoleLines);
 
             progressBar.Visibility = Visibility.Hidden;
 
@@ -128,9 +130,9 @@ namespace ExcelTool
             };
             consoleLines.Inlines.Add(r);
 
-            if ((int)richTextBox.VerticalOffset >= (int)(richTextBox.ExtentHeight-richTextBox.ViewportHeight))
+            if ((int)logRichTextBox.VerticalOffset >= (int)(logRichTextBox.ExtentHeight-logRichTextBox.ViewportHeight))
             {
-                richTextBox.ScrollToEnd();
+                logRichTextBox.ScrollToEnd();
             }
         }
 
@@ -196,11 +198,14 @@ namespace ExcelTool
                 return;
             }
 
-            Dictionary<string, string> allSheetNames = new Dictionary<string, string>();
             DirectoryInfo dirInfo = new DirectoryInfo(excelPath);
 
-			totalClientCount = 0;
-			totalServerCount = 0;
+			if (filter == "")
+			{
+				totalClientCount = 0;
+				totalServerCount = 0;
+				allSheetNames.Clear();
+			}
 
 			foreach (FileInfo f in dirInfo.GetFiles())
 			{
@@ -222,34 +227,36 @@ namespace ExcelTool
 							bool forServer = false;
 							countSheet(workbook.GetSheet(sheetName), ref forClient, ref forServer);
 
-							if (forClient)
-							{
-								totalClientCount++;
-							}
-
-							if (forServer)
-							{
-								totalServerCount++;
-							}
-
 							if ((codeType == CodeType.CLIENT && !forClient) || (codeType == CodeType.SERVER && !forServer))
 							{
 								continue;
 							}
 
-
-							if (!allSheetNames.ContainsKey(sheetName))
+							if (filter == "")
 							{
-								allSheetNames[sheetName] = f.Name.Substring(0, f.Name.IndexOf("."));
-							}
-							else
-							{
-								string msg = "<" + allSheetNames[sheetName] + "> 和 <" + f.Name.Substring(0, f.Name.IndexOf(".")) + "> 都包含 " + sheetName;
-								if (MessageBox.Show(msg, "Sheet名重复") == MessageBoxResult.OK)
+								if (forClient)
 								{
-									Close();
+									totalClientCount++;
 								}
-								return;
+
+								if (forServer)
+								{
+									totalServerCount++;
+								}
+
+								if (!allSheetNames.ContainsKey(sheetName))
+								{
+									allSheetNames[sheetName] = f.Name.Substring(0, f.Name.IndexOf("."));
+								}
+								else
+								{
+									string msg = "<" + allSheetNames[sheetName] + "> 和 <" + f.Name.Substring(0, f.Name.IndexOf(".")) + "> 都包含 " + sheetName;
+									if (MessageBox.Show(msg, "Sheet名重复") == MessageBoxResult.OK)
+									{
+										Close();
+									}
+									return;
+								}
 							}
 
 
@@ -358,7 +365,7 @@ namespace ExcelTool
 
         private void textBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            showList(textBox.Text);
+            showList(searchTextBox.Text);
         }
 
         public void start(bool async = true)
@@ -401,6 +408,11 @@ namespace ExcelTool
 		//in thread
         void handleSheet(ISheet sheet, string excelName)
         {
+			if (!allSheetNames.ContainsKey(sheet.SheetName))
+			{
+				return;
+			}
+
             string msg = "[" + excelName.Substring(0, excelName.IndexOf(".")) + "] " + sheet.SheetName + " : ";
 
             if (sheet.LastRowNum < 4)
@@ -527,6 +539,7 @@ namespace ExcelTool
 				{
 					codeType = newType;
 					showList();
+					searchTextBox.Text = "";
 				}
             }
         }
