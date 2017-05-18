@@ -1,4 +1,6 @@
-﻿using NPOI.SS.UserModel;
+﻿using MiscUtil.Conversion;
+using MiscUtil.IO;
+using NPOI.SS.UserModel;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -69,7 +71,9 @@ namespace ExcelTool
                 + "#ifndef __{0}CONFIG_H__\n"
                 + "#define __{0}CONFIG_H__\n"
                 + "\n"
-                + "class {1}Config {{\n"
+				+ "#include <gstl.h>\n"
+				+ "\n"
+				+ "class {1}Config {{\n"
                 + "public:\n"
                 + "{2}\n"
                 + "	{1}Config();\n"
@@ -93,6 +97,7 @@ namespace ExcelTool
 			f = new StreamWriter(System.IO.Path.Combine(ccodePath, sheet.SheetName + "Config.cpp"), false);
 			f.Write(string.Format(""
 				+ "#include \"{0}Config.h\"\n"
+				+ "#include \"ResLoader.h\"\n"
 				+ "\n"
 				+ "{0}Config::{0}Config()\n"
 				+ "{1}"
@@ -115,7 +120,7 @@ namespace ExcelTool
 				+ "\n"
 				+ "void {0}Table::load() {{\n"
 				+ "	s32 len;\n"
-				+ "	c8 * file = ResLoader::loadFile(\"{0}Config.bin\", len);\n"
+				+ "	c8 * file = ResLoader::loadFile(\"res/config/{0}Config.bin\", len);\n"
 				+ "	iobuf buf(file, len);\n"
 				+ "	size = buf.readInt32();\n"
 				+ "	for (int i = 0; i < size; i++) {{\n"
@@ -150,7 +155,10 @@ namespace ExcelTool
 			
 
 			string filename = Path.Combine(Properties.Settings.Default.cdataPath, sheet.SheetName + "Config.bin");
-			BinaryWriter bw = new BinaryWriter(new FileStream(filename, FileMode.Create));
+
+			EndianBinaryWriter bw = new EndianBinaryWriter(EndianBitConverter.Big, new FileStream(filename, FileMode.Create), Encoding.UTF8);
+
+			//BinaryWriter bw = new BinaryWriter(new FileStream(filename, FileMode.Create), System.Text.Encoding.BigEndianUnicode);
 			ColData cd = null;
 
 			bw.Write(rowCount- headerRowCount);
@@ -254,6 +262,7 @@ namespace ExcelTool
 			if (isArr)
 			{
 				ret = tab + "len = buf.readInt32();\n"
+					+ tab + vname + ".resize(len);\n"
 					+ tab + "for (int j = 0; j < len; j++) {\n"
 					+ readMemberStr(tab + "\t", vname + "[j]", vtype, false)
 					+ tab + "}\n";
@@ -393,7 +402,7 @@ namespace ExcelTool
 			return members;
 		}
 
-		private static void writeMember(BinaryWriter bw, string vtype, string v, string errmsg)
+		private static void writeMember(EndianBinaryWriter bw, string vtype, string v, string errmsg)
 		{
 			if (vtype == "int")
 			{
@@ -439,7 +448,9 @@ namespace ExcelTool
 			}
 			else if (vtype == "str")
 			{
-				bw.Write(v);
+				byte[] bytes = Encoding.UTF8.GetBytes(v);
+				bw.Write((short)bytes.Length);
+				bw.Write(bytes);
 			}
 		}
 

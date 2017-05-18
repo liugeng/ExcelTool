@@ -80,6 +80,12 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Generater.cs" />
+    <Compile Include="MiscUtil\BigEndianBitConverter.cs" />
+    <Compile Include="MiscUtil\DoubleConverter.cs" />
+    <Compile Include="MiscUtil\EndianBinaryWriter.cs" />
+    <Compile Include="MiscUtil\EndianBitConverter.cs" />
+    <Compile Include="MiscUtil\Endianness.cs" />
+    <Compile Include="MiscUtil\LittleEndianBitConverter.cs" />
     <Compile Include="SettingWindow.xaml.cs">
       <DependentUpon>SettingWindow.xaml</DependentUpon>
     </Compile>
