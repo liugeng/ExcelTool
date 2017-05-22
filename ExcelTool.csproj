@@ -79,7 +79,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Generater.cs" />
+    <Compile Include="Generaters\GenClientBolo.cs" />
+    <Compile Include="Generaters\GenClientCpp2Bolo.cs" />
+    <Compile Include="Generaters\GenClientCpp.cs" />
+    <Compile Include="Generaters\GenClientData.cs" />
+    <Compile Include="Generaters\Generater.cs" />
     <Compile Include="MiscUtil\BigEndianBitConverter.cs" />
     <Compile Include="MiscUtil\DoubleConverter.cs" />
     <Compile Include="MiscUtil\EndianBinaryWriter.cs" />

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -38,6 +39,14 @@ namespace ExcelTool
         CLIENT,
         SERVER
     }
+
+	//客户端输出类型，存储在cfg里
+	public enum COutType
+	{
+		CPP			= 1,
+		BOLO		= 2,
+		CPP2BOLO	= 3
+	}
 
     class SheetArg
     {
@@ -72,6 +81,7 @@ namespace ExcelTool
 		int totalServerCount = 0;
 
 		Dictionary<string, string> allSheetNames = new Dictionary<string, string>();
+		public static Dictionary<string, int> cfg = new Dictionary<string, int>();
 
 
 		public MainWindow()
@@ -80,7 +90,9 @@ namespace ExcelTool
             InitializeComponent();
             initialized = true;
 
-            this.Left = (SystemParameters.PrimaryScreenWidth - this.Width) * 0.5;
+			loadIni();
+
+			this.Left = (SystemParameters.PrimaryScreenWidth - this.Width) * 0.5;
             this.Top = (SystemParameters.PrimaryScreenHeight - this.Height) * 0.5;
 
             logRichTextBox.Document.Blocks.Add(consoleLines);
@@ -110,6 +122,37 @@ namespace ExcelTool
                 comboBox.SelectedIndex = 1;
             }
         }
+
+		private void loadIni()
+		{
+			string iniPath = "./ExcelTool.ini";
+			if (!File.Exists(iniPath))
+			{
+				return;
+			}
+			StreamReader sr = File.OpenText(iniPath);
+			string line = "";
+			Regex r = new Regex(@"(\w+)=(\d)");
+			while ((line = sr.ReadLine()) != null)
+			{
+				if (r.IsMatch(line))
+				{
+					Match m = r.Match(line);
+					cfg[m.Groups[1].Value] = int.Parse(m.Groups[2].Value);
+				}
+			}
+
+			sr.Close();
+		}
+
+		public static COutType getSheetOutType(string sheetName)
+		{
+			if (cfg.ContainsKey(sheetName))
+			{
+				return (COutType)cfg[sheetName];
+			}
+			return COutType.CPP;
+		}
 
         private void settingBtn_Click(object sender, RoutedEventArgs e)
         {
@@ -313,7 +356,8 @@ namespace ExcelTool
 
         private void genCodeAll_Click(object sender, RoutedEventArgs e)
         {
-			if ((codeType == CodeType.CLIENT && !checkPath(Properties.Settings.Default.ccodePath, "客户端代码目录")) ||
+			if ((codeType == CodeType.CLIENT && (!checkPath(Properties.Settings.Default.ccodePath, "客户端代码目录") ||
+												 !checkPath(Properties.Settings.Default.cscriptPath, "客户端脚本目录"))) ||
 				(codeType == CodeType.SERVER && !checkPath(Properties.Settings.Default.scodePath, "服务器代码目录")))
 			{
 				return;
@@ -328,6 +372,13 @@ namespace ExcelTool
         {
 			if ((codeType == CodeType.CLIENT && !checkPath(Properties.Settings.Default.ccodePath, "客户端代码目录")) ||
 				(codeType == CodeType.SERVER && !checkPath(Properties.Settings.Default.scodePath, "服务器代码目录")))
+			{
+				return;
+			}
+
+			if (codeType == CodeType.CLIENT &&
+				getSheetOutType(selectedArg.sheetName) == COutType.BOLO &&
+				!checkPath(Properties.Settings.Default.cscriptPath, "客户端脚本目录"))
 			{
 				return;
 			}
