@@ -32,12 +32,14 @@ namespace ExcelTool
 
             excelPathTextBox.Text = Properties.Settings.Default.excelPath;
             ccodePathTextBox.Text = Properties.Settings.Default.ccodePath;
+			cscriptPathTextBox.Text = Properties.Settings.Default.cscriptPath;
 			cdataPathTextBox.Text = Properties.Settings.Default.cdataPath;
 			scodePathTextBox.Text = Properties.Settings.Default.scodePath;
 			sdataPathTextBox.Text = Properties.Settings.Default.sdataPath;
 
 			checkPath(excelPathLabel, Properties.Settings.Default.excelPath);
 			checkPath(ccodePathLabel, Properties.Settings.Default.ccodePath);
+			checkPath(cscriptPathLabel, Properties.Settings.Default.cscriptPath);
 			checkPath(cdataPathLabel, Properties.Settings.Default.cdataPath);
 			checkPath(scodePathLabel, Properties.Settings.Default.scodePath);
 			checkPath(sdataPathLabel, Properties.Settings.Default.sdataPath);
@@ -92,8 +94,13 @@ namespace ExcelTool
 
         private void ccodePathBtn_Click(object sender, RoutedEventArgs e)
         {
-            ccodePathTextBox.Text = openSettingDialog(Properties.Settings.Default.ccodePath, "选择客户端代码输出目录");
+            ccodePathTextBox.Text = openSettingDialog(Properties.Settings.Default.ccodePath, "选择客户端 C++ 输出目录");
         }
+
+		private void cscriptPathBtn_Click(object sender, RoutedEventArgs e)
+		{
+			cscriptPathTextBox.Text = openSettingDialog(Properties.Settings.Default.cscriptPath, "选择客户端脚本输出目录");
+		}
 
 		private void cdataPathBtn_Click(object sender, RoutedEventArgs e)
 		{
@@ -161,6 +168,7 @@ namespace ExcelTool
 
             Properties.Settings.Default.excelPath = excelPathTextBox.Text;
             Properties.Settings.Default.ccodePath = ccodePathTextBox.Text;
+			Properties.Settings.Default.cscriptPath = cscriptPathTextBox.Text;
 			Properties.Settings.Default.cdataPath = cdataPathTextBox.Text;
 			Properties.Settings.Default.scodePath = scodePathTextBox.Text;
 			Properties.Settings.Default.sdataPath = sdataPathTextBox.Text;
@@ -184,6 +192,11 @@ namespace ExcelTool
 			checkPath(ccodePathLabel, ccodePathTextBox.Text);
 		}
 
+		private void cscriptPathTextBox_TextChanged(object sender, TextChangedEventArgs e)
+		{
+			checkPath(cscriptPathLabel, cscriptPathTextBox.Text);
+		}
+
 		private void cdataPathTextBox_TextChanged(object sender, TextChangedEventArgs e)
 		{
 			checkPath(cdataPathLabel, cdataPathTextBox.Text);
@@ -198,5 +211,6 @@ namespace ExcelTool
 		{
 			checkPath(sdataPathLabel, sdataPathTextBox.Text);
 		}
+
 	}
 }

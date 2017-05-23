@@ -22,6 +22,7 @@ namespace ExcelTool.Generaters
 			string ccodePath = Properties.Settings.Default.ccodePath;
 			StreamWriter f = new StreamWriter(System.IO.Path.Combine(ccodePath, sheetName + "Config.h"), false);
 			f.Write(string.Format(""
+				+ "{4}\n"
 				+ "#ifndef __{0}CONFIG_H__\n"
 				+ "#define __{0}CONFIG_H__\n"
 				+ "\n"
@@ -35,18 +36,18 @@ namespace ExcelTool.Generaters
 				+ "\n"
 				+ "class {1}Table {{\n"
 				+ "public:\n"
-				+ "    static {1}* getInstance();\n"
+				+ "    static {1}Table* getInstance();\n"
 				+ "\n"
-				+ "    static {1}Config* get({3} key);\n"
-				+ "    static void load();\n"
-				+ "    static void clear();\n"
-				+ "    int getSize() const;\n"
+				+ "    const {1}Config& get({3} key);\n"
+				+ "    void load();\n"
+				+ "    void clear();\n"
+				+ "    int size() const;\n"
 				+ "\n"
 				+ "private:\n"
 				+ "    static {1}Table* instance;\n"
 				+ "    HashMap<{3}, {1}Config> datas;\n"
-				+ "    {1}Config* defaultConfig;\n"
-				+ "    int size;\n"
+				+ "    {1}Config defaultConfig;\n"
+				+ "    int nSize;\n"
 				+ "}};\n"
 				+ "\n"
 				+ "#endif /*__{0}CONFIG_H__*/"
@@ -54,6 +55,7 @@ namespace ExcelTool.Generaters
 				, sheetName
 				, genMemberDeclareStr(members)
 				, typeStr(members[0].vtype)
+				, Generater.fileHeader
 				));
 			f.Close();
 		}
@@ -63,34 +65,51 @@ namespace ExcelTool.Generaters
 			string ccodePath = Properties.Settings.Default.ccodePath;
 			StreamWriter f = new StreamWriter(System.IO.Path.Combine(ccodePath, sheetName + "Config.cpp"), false);
 			f.Write(string.Format(""
+				+ "{5}\n"
 				+ "#include \"{0}Config.h\"\n"
 				+ "#include \"ResLoader.h\"\n"
 				+ "\n"
 				+ "{0}Config::{0}Config()\n"
 				+ "{1}"
 				+ "{{}}\n"
+				+ "\n\n"
+				+ "{0}Table* {0}Table::instance = nullptr;\n"
+				+ "{0}Table* {0}Table::getInstance() {{\n"
+				+ "    if (!instance) {{\n"
+				+ "        instance = new {0}Table();\n"
+				+ "    }}\n"
+				+ "    return instance;\n"
+				+ "}}\n"
 				+ "\n"
-				+ "{0}Config* {0}Table::get({4} key) {{\n"
-				+ "    if (size == 0) {{\n"
+				+ "const {0}Config& {0}Table::get({4} key) {{\n"
+				+ "    if (nSize == 0) {{\n"
 				+ "        load();\n"
 				+ "    }}\n"
 				+ "    HashMap<{4}, {0}Config>::iterator it = datas.find(key);\n"
 				+ "    if (it != datas.end()) {{\n"
-				+ "    return it->second;\n"
+				+ "        return it->second;\n"
 				+ "    }}\n"
+				+ "    LogPrintf(\"Key not found in {0}Table: %d\", 1, key);\n"
 				+ "    return defaultConfig;\n"
 				+ "}}\n"
 				+ "\n"
 				+ "void {0}Table::load() {{\n"
 				+ "    s32 len;\n"
-				+ "    c8 * file = ResLoader::loadFile(\"res/config/{0}Config.bin\", len);\n"
+				+ "    c8 * file = ResLoader::loadFile(\"#res/config/{0}Config.bin\", len);\n"
 				+ "    iobuf buf(file, len);\n"
-				+ "    size = buf.readInt32();\n"
-				+ "    for (int i = 0; i < size; i++) {{\n"
+				+ "    nSize = buf.readInt32();\n"
+				+ "    for (int i = 0; i < nSize; i++) {{\n"
 				+ "        {0}Config conf;\n"
 				+ "{2}"
 				+ "        datas[conf.{3}] = conf;\n"
 				+ "    }}\n"
+				+ "}}\n"
+				+ "\n"
+				+ "int {0}Table::size() const {{\n"
+				+ "    if (nSize == 0) {{\n"
+				+ "        (({0}Table*)this)->load();\n"
+				+ "    }}\n"
+				+ "    return nSize;\n"
 				+ "}}\n"
 				+ "\n"
 				+ "void {0}Table::clear() {{\n"
@@ -101,6 +120,7 @@ namespace ExcelTool.Generaters
 				, genReadMemberStr(members)
 				, members[0].vname
 				, typeStr(members[0].vtype)
+				, Generater.fileHeader
 				));
 			f.Close();
 		}

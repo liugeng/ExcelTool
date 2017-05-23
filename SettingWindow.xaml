@@ -18,8 +18,8 @@
             <Image Source="open.png" Width="16" Height="16"/>
         </Button>
         <Label x:Name="cscriptPathLabel" Content="客户端脚本" HorizontalAlignment="Left" Margin="0,86,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="cscriptPathTextBox" Height="23" Margin="80,89,40,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextChanged="cdataPathTextBox_TextChanged"/>
-        <Button x:Name="cscriptPathBtn" HorizontalAlignment="Right" Margin="0,89,6,0" VerticalAlignment="Top" Width="27" Background="{x:Null}" BorderBrush="DarkSeaGreen" Click="cdataPathBtn_Click">
+        <TextBox x:Name="cscriptPathTextBox" Height="23" Margin="80,89,40,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextChanged="cscriptPathTextBox_TextChanged"/>
+        <Button x:Name="cscriptPathBtn" HorizontalAlignment="Right" Margin="0,89,6,0" VerticalAlignment="Top" Width="27" Background="{x:Null}" BorderBrush="DarkSeaGreen" Click="cscriptPathBtn_Click">
             <Image Source="open.png" Width="16" Height="16"/>
         </Button>
         <Label x:Name="cdataPathLabel" Content="客户端数据" HorizontalAlignment="Left" Margin="0,116,0,0" VerticalAlignment="Top"/>

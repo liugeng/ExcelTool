@@ -20,6 +20,7 @@ namespace ExcelTool.Generaters
 			string ccodePath = Properties.Settings.Default.ccodePath;
 			StreamWriter f = new StreamWriter(System.IO.Path.Combine(ccodePath, sheetName + "Config.h"), false);
 			f.Write(string.Format(""
+				+ "{5}\n"
 				+ "#ifndef __{0}CONFIG_H__\n"
 				+ "#define __{0}CONFIG_H__\n"
 				+ "\n"
@@ -44,11 +45,12 @@ namespace ExcelTool.Generaters
 				+ "    using Self = {1}Table;\n"
 				+ "public:\n"
 				+ "    static {1}Table* getInstance();\n"
+				+ "    static void registerScript();\n"
 				+ "\n"
-				+ "    {1}Config* get({3} key);\n"
+				+ "    const {1}Config& get({3} key);\n"
 				+ "    void load();\n"
 				+ "    void clear();\n"
-				+ "    int getSize() const;\n"
+				+ "    int size() const;\n"
 				+ "\n"
 				+ "    BoloVar bolo_get(bolo_stack stack);\n"
 				+ "    virtual const string& getClassName() const {{\n"
@@ -59,8 +61,8 @@ namespace ExcelTool.Generaters
 				+ "private:\n"
 				+ "    static {1}Table* instance;\n"
 				+ "    HashMap<{3}, {1}Config> datas;\n"
-				+ "    {1}Config* defaultConfig;\n"
-				+ "    int size;\n"
+				+ "    {1}Config defaultConfig;\n"
+				+ "    int nSize;\n"
 				+ "}};\n"
 				+ "\n"
 				+ "#endif /*__{0}CONFIG_H__*/"
@@ -69,6 +71,7 @@ namespace ExcelTool.Generaters
 				, GenClientCpp.genMemberDeclareStr(members)
 				, GenClientCpp.typeStr(members[0].vtype)
 				, genGetterFuncDeclareStr(members)
+				, Generater.fileHeader
 				));
 			f.Close();
 		}
@@ -78,6 +81,7 @@ namespace ExcelTool.Generaters
 			string ccodePath = Properties.Settings.Default.ccodePath;
 			StreamWriter f = new StreamWriter(System.IO.Path.Combine(ccodePath, sheetName + "Config.cpp"), false);
 			f.Write(string.Format(""
+				+ "{7}\n"
 				+ "#include \"{0}Config.h\"\n"
 				+ "#include \"ResLoader.h\"\n"
 				+ "\n"
@@ -86,7 +90,6 @@ namespace ExcelTool.Generaters
 				+ "{{}}\n"
 				+ "\n"
 				+ "{5}"
-				+ "\n"
 				+ "void {0}Config::registerReflection(s32 id) {{\n"
 				+ "{6}"
 				+ "}}\n"
@@ -94,61 +97,60 @@ namespace ExcelTool.Generaters
 				+ "{0}Table* {0}Table::instance = nullptr;\n"
 				+ "{0}Table* {0}Table::getInstance() {{\n"
 				+ "    if (!instance) {{\n"
-				+ "        BoloObject::initScriptLib<{0}Config>();\n"
-				+ "        BoloObject::initScriptLib<{0}Table>();\n"
 				+ "        instance = new {0}Table();\n"
-				+ "        BoloVM::registerEnterClass(instance, instance->getClassName());\n"
 				+ "    }}\n"
 				+ "    return instance;\n"
 				+ "}}\n"
 				+ "\n"
+				+ "void {0}Table::registerScript() {{\n"
+				+ "    BoloObject::initScriptLib<{0}Config>();\n"
+				+ "    BoloObject::initScriptLib<{0}Table>();\n"
+				+ "    BoloVM::registerEnterClass(getInstance(), getInstance()->getClassName());\n"
+				+ "}}\n"
+				+ "\n"
 				+ "const {0}Config& {0}Table::get({4} key) {{\n"
-				+ "    if (size == 0) {{\n"
+				+ "    if (nSize == 0) {{\n"
 				+ "        load();\n"
 				+ "    }}\n"
 				+ "    HashMap<{4}, {0}Config>::iterator it = datas.find(key);\n"
 				+ "    if (it != datas.end()) {{\n"
 				+ "        return it->second;\n"
 				+ "    }}\n"
+				+ "    LogPrintf(\"Key not found in {0}Table: %d\", 1, key);\n"
 				+ "    return defaultConfig;\n"
 				+ "}}\n"
 				+ "\n"
 				+ "void {0}Table::load() {{\n"
 				+ "    s32 len;\n"
-				+ "    c8 * file = ResLoader::loadFile(\"res/config/{0}Config.bin\", len);\n"
+				+ "    c8 * file = ResLoader::loadFile(\"#res/config/{0}Config.bin\", len);\n"
 				+ "    iobuf buf(file, len);\n"
-				+ "    size = buf.readInt32();\n"
-				+ "    for (int i = 0; i < size; i++) {{\n"
+				+ "    nSize = buf.readInt32();\n"
+				+ "    for (int i = 0; i < nSize; i++) {{\n"
 				+ "        {0}Config conf;\n"
 				+ "{2}"
 				+ "        datas[conf.{3}] = conf;\n"
 				+ "    }}\n"
-				+ "\n"
-				+ "    defaultConfig = new MedicineConfig();\n"
 				+ "}}\n"
 				+ "\n"
 				+ "void {0}Table::clear() {{\n"
-				+ "    for (auto it : datas) {{\n"
-				+ "        delete it.second;\n"
-				+ "    }}\n"
 				+ "    datas.clear();\n"
 				+ "}}\n"
 				+ "\n"
-				+ "int {0}Table::getSize() const {{\n"
-				+ "    if (size == 0) {{\n"
+				+ "int {0}Table::size() const {{\n"
+				+ "    if (nSize == 0) {{\n"
 				+ "        (({0}Table*)this)->load();\n"
 				+ "    }}\n"
-				+ "    return size;\n"
+				+ "    return nSize;\n"
 				+ "}}\n"
 				+ "\n"
-				+ "BoloVar {0}Table::bolo_get(bolo_stack) {{\n"
+				+ "BoloVar {0}Table::bolo_get(bolo_stack stack) {{\n"
 				+ "    int key = bolo_int(stack);\n"
-				+ "    return bolo_create(stack, get(key), false);\n"
+				+ "    return bolo_create(stack, (BoloObject*)&get(key), false);\n"
 				+ "}}\n"
 				+ "\n"
 				+ "void {0}Table::registerReflection(s32 id) {{\n"
 				+ "    BoloRegisterFunction(\"get\", bolo_get);\n"
-				+ "    BoloRegisterPropReadOnly(\"size\", getSize();\n"
+				+ "    BoloRegisterPropReadOnly(\"size\", size);\n"
 				+ "}}"
 				, sheetName
 				, GenClientCpp.genConstructStr(members)
@@ -157,6 +159,7 @@ namespace ExcelTool.Generaters
 				, GenClientCpp.typeStr(members[0].vtype)
 				, genGetterFuncSynthesize(members, sheetName)
 				, genRegisterReflection(members)
+				, Generater.fileHeader
 				));
 			f.Close();
 		}
@@ -168,16 +171,16 @@ namespace ExcelTool.Generaters
 			{
 				if (d.vtype == "str")
 				{
-					ret += GenClientCpp._tab + "const wstring& get" + toTitle(d.vname) + "() const { return " + d.vname + ";}\n";
+					ret += GenClientCpp._tab + "const wstring& bolo_" + d.vname + "() const { return " + d.vname + ";}\n";
 				}
 				else if (d.isCombineArr || d.isCommaArr)
 				{
-					ret += GenClientCpp._tab + "BoloVar get" + toTitle(d.vname) + "Size(bolo_statck stack);\n";
-					ret += GenClientCpp._tab + "BOloVar get" + toTitle(d.vname) + "At(bolo_stack stack);\n";
+					ret += GenClientCpp._tab + "BoloVar bolo_" + d.vname + "Size(bolo_statck stack);\n";
+					ret += GenClientCpp._tab + "BOloVar bolo_" + d.vname + "At(bolo_stack stack);\n";
 				}
 				else
 				{
-					ret += GenClientCpp._tab + GenClientCpp.typeStr(d.vtype) + " get" + toTitle(d.vname) + "() const { return " + d.vname + "; }\n";
+					ret += GenClientCpp._tab + GenClientCpp.typeStr(d.vtype) + " bolo_" + d.vname + "() const { return " + d.vname + "; }\n";
 				}
 			}
 			return ret;
@@ -205,6 +208,11 @@ namespace ExcelTool.Generaters
 						, classname, toTitle(d.vname), d.vname, defaultErrorVal(d.vtype));
 				}
 			}
+
+			if (ret != "")
+			{
+				ret += "\n";
+			}
 			return ret;
 		}
 
@@ -215,12 +223,12 @@ namespace ExcelTool.Generaters
 			{
 				if (d.isCombineArr || d.isCommaArr)
 				{
-					ret += GenClientCpp._tab + "BoloRegisterFunction(\"" + d.vname + "_size\", bolo_" + toTitle(d.vname) + "Size);\n";
-					ret += GenClientCpp._tab + "BoloRegisterFunction(\"" + d.vname + "_at\", bolo_" + toTitle(d.vname) + "At);\n";
+					ret += GenClientCpp._tab + "BoloRegisterFunction(\"" + d.vname + "_size\", bolo_" + d.vname + "Size);\n";
+					ret += GenClientCpp._tab + "BoloRegisterFunction(\"" + d.vname + "_at\", bolo_" + d.vname + "At);\n";
 				}
 				else
 				{
-					ret += GenClientCpp._tab + "BoloRegisterPropReadOnly(\"" + d.vname + "\", get" + toTitle(d.vname) + ");\n";
+					ret += GenClientCpp._tab + "BoloRegisterPropReadOnly(\"" + d.vname + "\", bolo_" + d.vname + ");\n";
 				}
 
 			}

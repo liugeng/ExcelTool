@@ -25,8 +25,13 @@ namespace ExcelTool
     class Generater
     {
 		public static int headerRowCount = 4;
+		public static string fileHeader = ""
+			+ "/******************************************************************************\n"
+			+ "* 由ExcelTool自动生成, 请勿手动修改\n"
+			+ "******************************************************************************/\n";
 
-        public static bool genClientCode(ISheet sheet)
+
+		public static bool genClientCode(ISheet sheet)
         {
 			List<ColData> members = parseStruct(sheet, "C");
 			if (members.Count == 0)
